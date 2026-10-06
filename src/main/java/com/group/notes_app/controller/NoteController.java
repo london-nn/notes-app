@@ -17,9 +17,9 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-    @PostMapping
-    public ResponseEntity<NoteDto> createNote(@RequestBody NoteRequest noteRequest) {
-        NoteDto savedNote = noteService.CreateNote(noteRequest);
+    @PostMapping("{userId}/notes")
+    public ResponseEntity<NoteDto> createNote(@PathVariable Long userId, @RequestBody NoteRequest noteRequest) {
+        NoteDto savedNote = noteService.CreateNote(userId, noteRequest);
         return ResponseEntity.ok().body(savedNote);
     }
 

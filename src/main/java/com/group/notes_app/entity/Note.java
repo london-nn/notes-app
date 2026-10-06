@@ -20,6 +20,9 @@ public class Note {
     @Column(columnDefinition = "TEXT")
     private String content;
     private String dateTime;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @PrePersist
     protected void onCreate() {

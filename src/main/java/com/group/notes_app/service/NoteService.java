@@ -3,9 +3,11 @@ package com.group.notes_app.service;
 import com.group.notes_app.dto.NoteDto;
 import com.group.notes_app.dto.NoteRequest;
 import com.group.notes_app.entity.Note;
+import com.group.notes_app.entity.User;
 import com.group.notes_app.exceptions.TaskListIsEmpty;
 import com.group.notes_app.exceptions.TaskNotFoundException;
 import com.group.notes_app.repository.NoteRepository;
+import com.group.notes_app.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,15 +21,17 @@ public class NoteService {
 
     @Autowired
     private NoteRepository noteRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    public NoteDto CreateNote(NoteRequest noteRequest) {
+    public NoteDto CreateNote(Long userId, NoteRequest noteRequest) {
         Note noteEntity = new Note();
         BeanUtils.copyProperties(noteRequest, noteEntity);
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Пользователь с id: " + userId + "не найден."));
+        noteEntity.setUser(user);
         Note savedNote = noteRepository.save(noteEntity);
-        System.out.println(savedNote.getDateTime().toString());
         NoteDto noteDto = new NoteDto();
         BeanUtils.copyProperties(savedNote, noteDto);
-        System.out.println(noteDto.getDateTime().toString());
         return noteDto;
     }
 
