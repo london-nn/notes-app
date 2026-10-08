@@ -1,7 +1,13 @@
 package com.group.notes_app.controller;
 
+import com.group.notes_app.dto.UserDto;
+import com.group.notes_app.dto.UserLoginRequest;
+import com.group.notes_app.dto.UserRegistrationRequest;
 import com.group.notes_app.entity.User;
 import com.group.notes_app.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,18 +24,20 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<UserDto> users = userService.getAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserRegistrationRequest user) {
+        UserDto newUser = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
     }
 
     @DeleteMapping("/{id}")
