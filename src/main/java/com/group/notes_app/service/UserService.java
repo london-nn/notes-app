@@ -5,7 +5,10 @@ import com.group.notes_app.dto.UserLoginRequest;
 import com.group.notes_app.dto.UserRegistrationRequest;
 import com.group.notes_app.entity.User;
 import com.group.notes_app.repository.UserRepository;
+import com.group.notes_app.security.JwtUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,8 +19,14 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    private final JwtUtils jwtUtils;
+
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, JwtUtils jwtUtils) {
         this.userRepository = userRepository;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     public List<UserDto> getAllUsers() {
@@ -42,9 +51,11 @@ public class UserService {
     public UserDto createUser(UserRegistrationRequest user) {
         User newUser = new User();
         BeanUtils.copyProperties(user, newUser);
+        newUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(newUser);
         UserDto userDto = new UserDto();
         BeanUtils.copyProperties(savedUser, userDto);
+        userDto.setToken(jwtUtils.generateToken(userDto.getUsername()));
         return userDto;
     }
 
