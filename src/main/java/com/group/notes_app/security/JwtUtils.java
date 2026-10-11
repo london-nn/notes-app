@@ -1,8 +1,10 @@
 package com.group.notes_app.security;
 
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -11,8 +13,10 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private String jwtSecret = "secret";
-    private int expirationMs = 360000;
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    @Value("${jwt.expiration}")
+    private int expirationMs;
 
     private SecretKey secretKey;
 
@@ -28,5 +32,23 @@ public class JwtUtils {
                 .expiration(new Date(new Date().getTime() + expirationMs))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public String getUserFromToken(String token) {
+        return Jwts.parser().verifyWith(secretKey).build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
+            return true;
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        return false;
     }
 }
