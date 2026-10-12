@@ -1,5 +1,6 @@
 package com.group.notes_app.controller;
 
+import com.group.notes_app.dto.UserDto;
 import com.group.notes_app.dto.UserLoginRequest;
 import com.group.notes_app.dto.UserRegistrationRequest;
 import com.group.notes_app.security.JwtUtils;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
@@ -30,18 +34,16 @@ public class AuthenticationController {
     private JwtUtils jwtUtils;
 
     @PostMapping("/registration")
-    public ResponseEntity<?> registration(@RequestBody UserRegistrationRequest userRegistrationRequest) {
-        userService.createUser(userRegistrationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<UserDto> registration(@RequestBody UserRegistrationRequest userRegistrationRequest) {
+        UserDto userDto = userService.createUser(userRegistrationRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody UserLoginRequest userLoginRequest) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userLoginRequest.getUsername(), userLoginRequest.getPassword());
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return jwtUtils.generateToken(userDetails.getUsername());
+    public ResponseEntity<String> login(@RequestBody UserLoginRequest userLoginRequest) {
+        String jwtToken = userService.loginUser(userLoginRequest);
+        Map<String,String> map = new HashMap<>();
+        map.put("token", jwtToken);
+        return ResponseEntity.status(HttpStatus.OK).body(jwtToken);
     }
 }

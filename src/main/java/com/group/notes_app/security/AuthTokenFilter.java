@@ -44,7 +44,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             }
         }
         catch(Exception e){
-            e.printStackTrace();
+            logger.error("Exception in doFilterInternal", e);
         }
         filterChain.doFilter(request, response);
     }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -17,9 +18,10 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-    @PostMapping("{userId}/notes")
-    public ResponseEntity<NoteDto> createNote(@PathVariable Long userId, @RequestBody NoteRequest noteRequest) {
-        NoteDto savedNote = noteService.CreateNote(userId, noteRequest);
+    @PostMapping()
+    public ResponseEntity<NoteDto> createNote(@RequestBody NoteRequest noteRequest, Principal principal) {
+        String username = principal.getName();
+        NoteDto savedNote = noteService.CreateNote(username, noteRequest);
         return ResponseEntity.ok().body(savedNote);
     }
 

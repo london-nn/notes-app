@@ -4,10 +4,18 @@ import com.group.notes_app.dto.UserDto;
 import com.group.notes_app.dto.UserLoginRequest;
 import com.group.notes_app.dto.UserRegistrationRequest;
 import com.group.notes_app.entity.User;
+import com.group.notes_app.exceptions.UsernameAlreadyExistsException;
 import com.group.notes_app.repository.UserRepository;
 import com.group.notes_app.security.JwtUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +30,9 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final JwtUtils jwtUtils;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, JwtUtils jwtUtils) {
         this.userRepository = userRepository;
@@ -49,6 +60,7 @@ public class UserService {
     }
 
     public UserDto createUser(UserRegistrationRequest user) {
+        checkIfUsernameExists(user.getUsername());
         User newUser = new User();
         BeanUtils.copyProperties(user, newUser);
         newUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
@@ -59,7 +71,22 @@ public class UserService {
         return userDto;
     }
 
+    public String loginUser(UserLoginRequest user) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return jwtUtils.generateToken(userDetails.getUsername());
+    }
+
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public void checkIfUsernameExists(String username) {
+        if(userRepository.existsUserByUsername(username)) {
+            throw new UsernameAlreadyExistsException("Username: " + username + " already exists");
+        }
     }
 }

@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Table(name = "users")
 @Entity
 @Getter
 @Setter

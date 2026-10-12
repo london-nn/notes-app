@@ -30,10 +30,8 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public AuthTokenFilter authTokenFilter() {
-        return new AuthTokenFilter();
-    }
+    @Autowired
+    public AuthTokenFilter authTokenFilter;
 
     @Bean
     public AuthenticationManager authenticationManager(
@@ -52,9 +50,9 @@ public class SecurityConfig {
                 .sessionManagement(s ->
                         s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests.requestMatchers("/api/auth/**").permitAll()
+                        authorizeRequests.requestMatchers("/api/auth/**","/error").permitAll()
                                 .anyRequest().authenticated());
-                http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+                http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

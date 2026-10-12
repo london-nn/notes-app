@@ -62,4 +62,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(UsernameAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ValidationErrorResponse handleUsernameAlreadyExists(UsernameAlreadyExistsException ex, HttpServletRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", ex.getMessage());
+        String methodAndPath = request.getMethod() + " " + request.getRequestURI();
+        return new ValidationErrorResponse(
+                "Username already exists",
+                LocalDateTime.now(),
+                methodAndPath,
+                HttpStatus.BAD_REQUEST.value(),
+                errors
+        );
+    }
+
 }

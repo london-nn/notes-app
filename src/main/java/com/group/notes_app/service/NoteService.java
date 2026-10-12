@@ -24,10 +24,11 @@ public class NoteService {
     @Autowired
     private UserRepository userRepository;
 
-    public NoteDto CreateNote(Long userId, NoteRequest noteRequest) {
+    public NoteDto CreateNote(String username, NoteRequest noteRequest) {
+        User userFromDb = userRepository.findUserByUsername(username);
         Note noteEntity = new Note();
         BeanUtils.copyProperties(noteRequest, noteEntity);
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Пользователь с id: " + userId + "не найден."));
+        User user = userRepository.findById(userFromDb.getId()).orElseThrow(() -> new RuntimeException("Пользователь с id: " + userFromDb.getId() + "не найден."));
         noteEntity.setUser(user);
         Note savedNote = noteRepository.save(noteEntity);
         NoteDto noteDto = new NoteDto();
