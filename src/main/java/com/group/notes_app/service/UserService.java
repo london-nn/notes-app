@@ -1,8 +1,10 @@
 package com.group.notes_app.service;
 
+import com.group.notes_app.dto.NoteDto;
 import com.group.notes_app.dto.UserDto;
 import com.group.notes_app.dto.UserLoginRequest;
 import com.group.notes_app.dto.UserRegistrationRequest;
+import com.group.notes_app.entity.Note;
 import com.group.notes_app.entity.User;
 import com.group.notes_app.exceptions.UsernameAlreadyExistsException;
 import com.group.notes_app.repository.UserRepository;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -30,6 +33,12 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private final JwtUtils jwtUtils;
+
+    private UserDto convertToNoteDto(User user) {
+        UserDto userDto = new UserDto();
+        BeanUtils.copyProperties(user, userDto);
+        return userDto;
+    }
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -42,18 +51,15 @@ public class UserService {
 
     public List<UserDto> getAllUsers() {
         List<User> users = userRepository.findAll();
-        List<UserDto> userDtos = new ArrayList<>();
-        for (User user : users) {
-            UserDto userDto = new UserDto();
-            BeanUtils.copyProperties(user, userDto);
-            userDtos.add(userDto);
-        }
+        List<UserDto> userDtos = users.stream()
+                .map(this::convertToNoteDto)
+                .collect(Collectors.toList());
         return userDtos;
     }
 
     public UserDto getUserById(Long id) {
         User foundUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
         UserDto userDto = new UserDto();
         BeanUtils.copyProperties(foundUser, userDto);
         return userDto;

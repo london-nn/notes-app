@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class NoteService {
@@ -24,12 +25,18 @@ public class NoteService {
     @Autowired
     private UserRepository userRepository;
 
+    private NoteDto convertToNoteDto(Note note) {
+        NoteDto noteDto = new NoteDto();
+        BeanUtils.copyProperties(note, noteDto);
+        return noteDto;
+    }
+
     public NoteDto CreateNote(String username, NoteRequest noteRequest) {
-        User userFromDb = userRepository.findUserByUsername(username);
+        Optional<User> optionalUser = userRepository.findOptionalUserByUsername(username);
+        User userFromDb = optionalUser.orElseThrow(() -> new RuntimeException("User with username " + username + " not found"));
         Note noteEntity = new Note();
         BeanUtils.copyProperties(noteRequest, noteEntity);
-        User user = userRepository.findById(userFromDb.getId()).orElseThrow(() -> new RuntimeException("Пользователь с id: " + userFromDb.getId() + "не найден."));
-        noteEntity.setUser(user);
+        noteEntity.setUser(userFromDb);
         Note savedNote = noteRepository.save(noteEntity);
         NoteDto noteDto = new NoteDto();
         BeanUtils.copyProperties(savedNote, noteDto);
@@ -51,12 +58,9 @@ public class NoteService {
         if (notes.isEmpty()) {
             throw new TaskListIsEmpty("Task list is empty");
         }
-        List<NoteDto> noteDtos = new ArrayList<>();
-        for (Note note : notes) {
-            NoteDto noteDto = new NoteDto();
-            BeanUtils.copyProperties(note, noteDto);
-            noteDtos.add(noteDto);
-        }
+        List<NoteDto> noteDtos = notes.stream()
+                .map(this::convertToNoteDto)
+                .collect(Collectors.toList());
         return noteDtos;
     }
 
@@ -70,10 +74,7 @@ public class NoteService {
     public NoteDto updateNote(long id , NoteRequest noteRequest) {
         Note noteEntity = new Note();
         BeanUtils.copyProperties(noteRequest, noteEntity);
-        Note noteToUpdate = noteRepository.findById(id).get();
-        if (!noteRepository.existsById(id)) {
-            throw new TaskNotFoundException("Note not found with id " + id);
-        }
+        Note noteToUpdate = noteRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("Note not found with id " + id));
         BeanUtils.copyProperties(noteRequest, noteToUpdate);
         Note savedNote = noteRepository.saveAndFlush(noteToUpdate);
         NoteDto noteDto = new NoteDto();

@@ -12,7 +12,7 @@ import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notes")
+@RequestMapping("/api/notes")
 public class NoteController {
 
     @Autowired
