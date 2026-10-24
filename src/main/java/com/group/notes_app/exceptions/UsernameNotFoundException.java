@@ -1,0 +1,7 @@
+package com.group.notes_app.exceptions;
+
+public class UsernameNotFoundException extends RuntimeException {
+    public UsernameNotFoundException(String message) {
+        super(message);
+    }
+}

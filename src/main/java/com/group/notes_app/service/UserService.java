@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +60,7 @@ public class UserService {
 
     public UserDto getUserById(Long id) {
         User foundUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         UserDto userDto = new UserDto();
         BeanUtils.copyProperties(foundUser, userDto);
         return userDto;
@@ -87,6 +88,9 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
+        if(!userRepository.existsById(id)) {
+            throw new UsernameNotFoundException("User not found with id " + id);
+        }
         userRepository.deleteById(id);
     }
 

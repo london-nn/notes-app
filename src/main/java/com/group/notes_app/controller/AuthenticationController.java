@@ -5,6 +5,7 @@ import com.group.notes_app.dto.UserLoginRequest;
 import com.group.notes_app.dto.UserRegistrationRequest;
 import com.group.notes_app.security.JwtUtils;
 import com.group.notes_app.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,13 +35,13 @@ public class AuthenticationController {
     private JwtUtils jwtUtils;
 
     @PostMapping("/registration")
-    public ResponseEntity<UserDto> registration(@RequestBody UserRegistrationRequest userRegistrationRequest) {
+    public ResponseEntity<UserDto> registration(@RequestBody @Valid UserRegistrationRequest userRegistrationRequest) {
         UserDto userDto = userService.createUser(userRegistrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserLoginRequest userLoginRequest) {
+    public ResponseEntity<String> login(@RequestBody @Valid UserLoginRequest userLoginRequest) {
         String jwtToken = userService.loginUser(userLoginRequest);
         Map<String,String> map = new HashMap<>();
         map.put("token", jwtToken);

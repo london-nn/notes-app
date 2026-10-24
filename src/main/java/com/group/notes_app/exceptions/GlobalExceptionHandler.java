@@ -1,7 +1,8 @@
 package com.group.notes_app.exceptions;
 
-import com.group.notes_app.dto.ValidationErrorResponse;
+import com.group.notes_app.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,66 +16,51 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @Autowired
+    GenericConstructor genericConstructor;
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ValidationErrorResponse handle(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ErrorResponse<Map<String,String>> handle(MethodArgumentNotValidException ex, HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         });
-        String methodAndPath = request.getMethod() + " " + request.getRequestURI();
-        return new ValidationErrorResponse(
-          "Validation error",
-                LocalDateTime.now(),
-                methodAndPath,
-                HttpStatus.BAD_REQUEST.value(),
-                errors
-        );
+        ErrorResponse<Map<String,String>> errorResponse =  genericConstructor.construct(
+                ex.getClass().getName(), errors,HttpStatus.BAD_REQUEST, request);
+        return errorResponse;
     }
 
     @ExceptionHandler(TaskNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ValidationErrorResponse handleTaskNotFound(TaskNotFoundException ex, HttpServletRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put("message", ex.getMessage());
-        String methodAndPath = request.getMethod() + " " + request.getRequestURI();
-        return new ValidationErrorResponse(
-                "Task not found",
-                LocalDateTime.now(),
-                methodAndPath,
-                HttpStatus.NOT_FOUND.value(),
-                errors
-        );
+    public ErrorResponse<String> handleTaskNotFound(TaskNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse<String> errorResponse =  genericConstructor.construct(
+                ex.getClass().getName(), ex.getMessage(),HttpStatus.NOT_FOUND, request);
+        return errorResponse;
     }
 
     @ExceptionHandler(TaskListIsEmpty.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ValidationErrorResponse handleTaskListIsEmpty(TaskListIsEmpty ex, HttpServletRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put("message", ex.getMessage());
-        String methodAndPath = request.getMethod() + " " + request.getRequestURI();
-        return new ValidationErrorResponse(
-          "Task list is empty",
-          LocalDateTime.now(),
-          methodAndPath,
-          HttpStatus.BAD_REQUEST.value(),
-          errors
-        );
+    public ErrorResponse<String> handleTaskListIsEmpty(TaskListIsEmpty ex, HttpServletRequest request) {
+        ErrorResponse<String> errorResponse =  genericConstructor.construct(
+                ex.getClass().getName(), ex.getMessage(),HttpStatus.BAD_REQUEST, request);
+        return errorResponse;
     }
 
     @ExceptionHandler(UsernameAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ValidationErrorResponse handleUsernameAlreadyExists(UsernameAlreadyExistsException ex, HttpServletRequest request) {
-        Map<String, String> errors = new HashMap<>();
-        errors.put("message", ex.getMessage());
-        String methodAndPath = request.getMethod() + " " + request.getRequestURI();
-        return new ValidationErrorResponse(
-                "Username already exists",
-                LocalDateTime.now(),
-                methodAndPath,
-                HttpStatus.BAD_REQUEST.value(),
-                errors
-        );
+    public ErrorResponse<String> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex, HttpServletRequest request) {
+        ErrorResponse<String> errorResponse =  genericConstructor.construct(
+                ex.getClass().getName(), ex.getMessage(),HttpStatus.BAD_REQUEST, request);
+        return errorResponse;
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse<String> handleUsernameNotFound(UsernameAlreadyExistsException ex, HttpServletRequest request) {
+        ErrorResponse<String> errorResponse =  genericConstructor.construct(
+                ex.getClass().getName(), ex.getMessage(),HttpStatus.NOT_FOUND, request);
+        return errorResponse;
     }
 
 }

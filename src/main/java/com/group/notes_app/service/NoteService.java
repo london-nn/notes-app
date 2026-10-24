@@ -83,10 +83,8 @@ public class NoteService {
     }
 
     public NoteDto getNoteByTitle(String title) {
-        Note note = noteRepository.findByTitle(title);
-        if (note == null) {
-            throw new TaskNotFoundException("Note not found with title " + title);
-        }
+        Optional<Note> optNote = noteRepository.findByTitle(title);
+        Note note = optNote.orElseThrow(() -> new TaskNotFoundException("Note not found with title " + title));
         NoteDto noteDto = new NoteDto();
         BeanUtils.copyProperties(note, noteDto);
         return noteDto;
